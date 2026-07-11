@@ -168,7 +168,7 @@ const seed = async () => {
       rentalId: rentals[2]._id,
       buyerId: alice._id,
       sellerId: charlie._id,
-      amount: 4, // 2 days * $2
+      amount: 4, // 2 days * ₹2
       status: 'held_in_escrow',
       rentalStartDate: new Date('2026-06-25'),
       rentalEndDate: new Date('2026-06-27')

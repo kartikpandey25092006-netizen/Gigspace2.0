@@ -235,7 +235,7 @@ export const Browse: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {listings.map((item) => {
             const owner = tab === 'gig' ? item.posterId : item.ownerId;
-            const priceLabel = tab === 'gig' ? `$${item.price}` : `$${item.pricePerDay}/day`;
+            const priceLabel = tab === 'gig' ? `₹${item.price}` : `₹${item.pricePerDay}/day`;
 
             return (
               <div
@@ -312,7 +312,7 @@ export const Browse: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="modal-price" className="block text-xs font-semibold text-slate-400 uppercase">
-                    {tab === 'gig' ? 'Price ($)' : 'Price per Day ($)'}
+                    {tab === 'gig' ? 'Price (₹)' : 'Price per Day (₹)'}
                   </label>
                   <input
                     id="modal-price"

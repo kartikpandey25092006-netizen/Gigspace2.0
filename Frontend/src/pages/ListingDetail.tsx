@@ -187,7 +187,7 @@ export const ListingDetail: React.FC = () => {
               <div>
                 <span className="text-xs text-slate-500 block">{isGig ? 'Budget' : 'Price / Day'}</span>
                 <span className="text-2xl font-bold text-blue-400">
-                  ${isGig ? data.price : data.pricePerDay}
+                  ₹{isGig ? data.price : data.pricePerDay}
                 </span>
               </div>
             </div>

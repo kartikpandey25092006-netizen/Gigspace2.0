@@ -131,7 +131,7 @@ export const Profile: React.FC = () => {
                           <td className="py-3 px-2 capitalize font-semibold text-slate-400">{tx.type}</td>
                           <td className="py-3 px-2 font-bold max-w-[150px] truncate">{title || 'Item Detail'}</td>
                           <td className="py-3 px-2">{partner?.name || 'Student'}</td>
-                          <td className="py-3 px-2 font-bold text-blue-400">${tx.amount}</td>
+                          <td className="py-3 px-2 font-bold text-blue-400">₹{tx.amount}</td>
                           <td className="py-3 px-2">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold capitalize ${
                               tx.status === 'completed' 
@@ -163,7 +163,7 @@ export const Profile: React.FC = () => {
                   {myGigs.map((g) => (
                     <div key={g._id} onClick={() => navigate(`/gig/${g._id}`)} className="p-3 bg-slate-900/30 hover:bg-slate-900/60 rounded-lg cursor-pointer border border-slate-850 flex justify-between items-center transition">
                       <span className="text-xs font-semibold text-slate-200 truncate pr-2">{g.title}</span>
-                      <span className="text-[10px] text-blue-400 font-bold">${g.price}</span>
+                      <span className="text-[10px] text-blue-400 font-bold">₹{g.price}</span>
                     </div>
                   ))}
                 </div>
@@ -179,7 +179,7 @@ export const Profile: React.FC = () => {
                   {myRentals.map((r) => (
                     <div key={r._id} onClick={() => navigate(`/rental/${r._id}`)} className="p-3 bg-slate-900/30 hover:bg-slate-900/60 rounded-lg cursor-pointer border border-slate-850 flex justify-between items-center transition">
                       <span className="text-xs font-semibold text-slate-200 truncate pr-2">{r.title}</span>
-                      <span className="text-[10px] text-blue-400 font-bold">${r.pricePerDay}/d</span>
+                      <span className="text-[10px] text-blue-400 font-bold">₹{r.pricePerDay}/d</span>
                     </div>
                   ))}
                 </div>
