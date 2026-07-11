@@ -1,0 +1,20 @@
+FROM node:18-alpine
+
+WORKDIR /usr/src/app
+
+# Copy shared models
+COPY ../Shared ../Shared
+
+# Copy backend config
+COPY ../Backend/package*.json ./Backend/
+WORKDIR /usr/src/app/Backend
+RUN npm install
+
+COPY ../Backend ./
+RUN npm run build
+
+EXPOSE 5000
+
+ENV NODE_ENV=production
+
+CMD ["npm", "start"]

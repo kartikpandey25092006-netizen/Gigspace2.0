@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: campus_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - campus_network
+
+  backend:
+    build:
+      context: ../
+      dockerfile: Docker/Dockerfile.backend
+    container_name: campus_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/campus_gigs_rentals
+      - JWT_SECRET=production_secret_key_987654321
+      - REFRESH_SECRET=production_refresh_secret_key_112233
+    depends_on:
+      - mongodb
+    networks:
+      - campus_network
+
+  frontend:
+    build:
+      context: ../
+      dockerfile: Docker/Dockerfile.frontend
+    container_name: campus_frontend
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://localhost:5000/api/v1
+      - VITE_SOCKET_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - campus_network
+
+volumes:
+  mongo_data:
+
+networks:
+  campus_network:
+    driver: bridge
