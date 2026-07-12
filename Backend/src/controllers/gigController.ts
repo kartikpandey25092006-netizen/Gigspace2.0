@@ -5,6 +5,7 @@ import { User } from '../models/User';
 import { ApiError } from '../middlewares/errorMiddleware';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 import { createNotification } from '../services/notificationService';
+import { awardXP, XP_REWARDS, checkAndAwardBadges } from '../services/gamificationService';
 
 export const createGig = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
@@ -25,6 +26,12 @@ export const createGig = async (req: AuthenticatedRequest, res: Response, next: 
     });
 
     res.status(201).json(newGig);
+
+    // Gamification
+    if (posterId) {
+      await awardXP(posterId, XP_REWARDS.POST_GIG, 'Posted a new gig');
+      await checkAndAwardBadges(posterId);
+    }
   } catch (error) {
     next(error);
   }
@@ -189,6 +196,12 @@ export const acceptGig = async (req: AuthenticatedRequest, res: Response, next: 
     }
 
     res.status(200).json({ gig, transaction });
+
+    // Gamification
+    if (accepterId) {
+      await awardXP(accepterId, XP_REWARDS.ACCEPT_GIG, 'Accepted a gig');
+      await checkAndAwardBadges(accepterId);
+    }
   } catch (error) {
     next(error);
   }
@@ -239,6 +252,16 @@ export const completeGig = async (req: AuthenticatedRequest, res: Response, next
     }
 
     res.status(200).json({ gig, transaction });
+
+    // Gamification
+    if (userId) {
+      await awardXP(userId, XP_REWARDS.COMPLETE_GIG_POSTER, 'Completed a gig (Poster)');
+      await checkAndAwardBadges(userId);
+    }
+    if (accepterId) {
+      await awardXP(accepterId, XP_REWARDS.COMPLETE_GIG_WORKER, 'Completed a gig (Worker)');
+      await checkAndAwardBadges(accepterId);
+    }
   } catch (error) {
     next(error);
   }

@@ -5,6 +5,7 @@ import { User } from '../models/User';
 import { ApiError } from '../middlewares/errorMiddleware';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 import { createNotification } from '../services/notificationService';
+import { awardXP, XP_REWARDS, checkAndAwardBadges } from '../services/gamificationService';
 
 // Helper to get array of dates between start and end (inclusive) in YYYY-MM-DD format
 const getDatesInRange = (startDate: Date, endDate: Date): string[] => {
@@ -42,6 +43,12 @@ export const createRental = async (req: AuthenticatedRequest, res: Response, nex
     });
 
     res.status(201).json(newRental);
+
+    // Gamification
+    if (ownerId) {
+      await awardXP(ownerId, XP_REWARDS.LIST_RENTAL, 'Listed a rental item');
+      await checkAndAwardBadges(ownerId);
+    }
   } catch (error) {
     next(error);
   }
@@ -303,6 +310,16 @@ export const returnItem = async (req: AuthenticatedRequest, res: Response, next:
     }
 
     res.status(200).json({ transaction, rental });
+
+    // Gamification
+    if (transaction.sellerId) {
+      await awardXP(transaction.sellerId.toString(), XP_REWARDS.COMPLETE_RENTAL_OWNER, 'Completed a rental (Owner)');
+      await checkAndAwardBadges(transaction.sellerId.toString());
+    }
+    if (transaction.buyerId) {
+      await awardXP(transaction.buyerId.toString(), XP_REWARDS.COMPLETE_RENTAL_RENTER, 'Completed a rental (Renter)');
+      await checkAndAwardBadges(transaction.buyerId.toString());
+    }
   } catch (error) {
     next(error);
   }

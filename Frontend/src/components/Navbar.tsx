@@ -5,7 +5,7 @@ import type { RootState } from '../store';
 import { logout } from '../store/authSlice';
 import { api } from '../services/api';
 import { getSocket } from '../services/socket';
-import { Bell, MessageSquare, User as UserIcon, LogOut, Shield } from 'lucide-react';
+import { Bell, MessageSquare, User as UserIcon, LogOut, Shield, Trophy } from 'lucide-react';
 import type { INotification } from '../../../Shared/src/types';
 
 export const Navbar: React.FC = () => {
@@ -106,6 +106,15 @@ export const Navbar: React.FC = () => {
                 }`}
               >
                 My Portal
+              </Link>
+              <Link
+                to="/leaderboard"
+                className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                  location.pathname === '/leaderboard' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Trophy className={`w-4 h-4 mr-1 ${location.pathname === '/leaderboard' ? 'text-yellow-400' : 'text-slate-400'}`} />
+                Leaderboard
               </Link>
               {user.role === 'admin' && (
                 <Link

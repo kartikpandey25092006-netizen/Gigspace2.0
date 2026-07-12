@@ -8,6 +8,10 @@ export interface IUser {
   college: string;
   ratingAvg: number;
   ratingCount: number;
+  xp: number;
+  badges: string[];
+  streak: number;
+  lastActivityDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

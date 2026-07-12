@@ -11,6 +11,7 @@ import ratingRoutes from './routes/rating.routes';
 import chatRoutes from './routes/chat.routes';
 import notificationRoutes from './routes/notification.routes';
 import adminRoutes from './routes/admin.routes';
+import gamificationRoutes from './routes/gamification.routes';
 import { Category } from './models/Category';
 
 const app = express();
@@ -52,6 +53,7 @@ app.use('/api/v1/ratings', ratingRoutes);
 app.use('/api/v1/chats', chatRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/gamification', gamificationRoutes);
 
 // Centralized error handling
 app.use(errorHandler as any);

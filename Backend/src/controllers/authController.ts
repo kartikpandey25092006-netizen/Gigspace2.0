@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 import { ApiError } from '../middlewares/errorMiddleware';
+import { updateStreak } from '../services/gamificationService';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_jwt_secret_key_12345';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'fallback_refresh_secret_key_67890';
@@ -71,7 +72,11 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
         role: newUser.role,
         college: newUser.college,
         ratingAvg: newUser.ratingAvg,
-        ratingCount: newUser.ratingCount
+        ratingCount: newUser.ratingCount,
+        xp: newUser.xp,
+        streak: newUser.streak,
+        badges: newUser.badges,
+        lastActivityDate: newUser.lastActivityDate
       },
       ...tokens
     });
@@ -104,15 +109,23 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       role: user.role
     });
 
+    // Update login streak
+    await updateStreak(user._id.toString());
+    const updatedUser = await User.findById(user._id);
+
     res.status(200).json({
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        college: user.college,
-        ratingAvg: user.ratingAvg,
-        ratingCount: user.ratingCount
+        id: updatedUser?._id,
+        name: updatedUser?.name,
+        email: updatedUser?.email,
+        role: updatedUser?.role,
+        college: updatedUser?.college,
+        ratingAvg: updatedUser?.ratingAvg,
+        ratingCount: updatedUser?.ratingCount,
+        xp: updatedUser?.xp,
+        streak: updatedUser?.streak,
+        badges: updatedUser?.badges,
+        lastActivityDate: updatedUser?.lastActivityDate
       },
       ...tokens
     });

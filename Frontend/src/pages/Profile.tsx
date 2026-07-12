@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store';
 import { logout } from '../store/authSlice';
 import { api } from '../services/api';
-import { User as UserIcon, Star, Key, Receipt, Activity, Clock, ShieldCheck } from 'lucide-react';
+import { User as UserIcon, Star, Key, Receipt, Activity, Clock, ShieldCheck, Flame, Award, TrendingUp } from 'lucide-react';
+import { getLevelInfo, ALL_BADGES } from '../utils/gamificationUtils';
 import type { ITransaction, IGig, IRental } from '../../../Shared/src/types';
 
 export const Profile: React.FC = () => {
@@ -93,6 +94,77 @@ export const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Gamification Dashboard */}
+      {(() => {
+        const levelInfo = getLevelInfo(user.xp || 0);
+        const userBadges = user.badges || [];
+        return (
+          <div className="glass-panel p-8 rounded-2xl">
+            <div className="flex items-center space-x-2 mb-6">
+              <TrendingUp className="w-5 h-5 text-purple-400" />
+              <h2 className="text-lg font-bold text-white">Gamification Progress</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Level & XP */}
+              <div className="md:col-span-2 space-y-4">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <span className="text-sm text-slate-400">Current Level</span>
+                    <div className="text-2xl font-bold text-purple-400 mt-1 flex items-center">
+                      <span className="mr-2 text-3xl">{levelInfo.current.icon}</span> {levelInfo.current.name}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-slate-400">Next: {levelInfo.next.name}</span>
+                    <div className="text-sm font-bold text-slate-200 mt-1">{user.xp || 0} / {levelInfo.next.minXp} XP</div>
+                  </div>
+                </div>
+                {/* Progress Bar */}
+                <div className="w-full bg-slate-800 rounded-full h-3 mb-4 overflow-hidden border border-slate-700">
+                  <div className="bg-gradient-to-r from-purple-600 to-blue-500 h-3 rounded-full transition-all duration-1000" style={{ width: `${levelInfo.progressPercent}%` }}></div>
+                </div>
+              </div>
+
+              {/* Streak */}
+              <div className="flex flex-col items-center justify-center bg-slate-900/40 p-4 rounded-xl border border-slate-800">
+                <Flame className={`w-10 h-10 ${user.streak > 0 ? 'text-orange-500' : 'text-slate-600'}`} />
+                <span className="text-xl font-bold text-white mt-2">{user.streak || 0} Day{user.streak !== 1 && 's'}</span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mt-1">Current Streak</span>
+              </div>
+            </div>
+
+            {/* Badges Section */}
+            <div className="mt-8 border-t border-slate-800 pt-6">
+              <h3 className="text-sm font-bold text-slate-300 mb-4 flex items-center">
+                <Award className="w-4 h-4 mr-2 text-yellow-400" /> Earned Badges ({userBadges.length}/{ALL_BADGES.length})
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {ALL_BADGES.map(badge => {
+                  const earned = userBadges.includes(badge.id);
+                  return (
+                    <div 
+                      key={badge.id} 
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg border ${
+                        earned 
+                          ? 'bg-slate-800/80 border-slate-700 text-white' 
+                          : 'bg-slate-900/40 border-slate-800/50 text-slate-500 opacity-50 grayscale'
+                      }`}
+                      title={badge.description}
+                    >
+                      <span className="text-lg">{badge.icon}</span>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold">{badge.name}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         

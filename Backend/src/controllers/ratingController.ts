@@ -5,6 +5,7 @@ import { User } from '../models/User';
 import { ApiError } from '../middlewares/errorMiddleware';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 import { createNotification } from '../services/notificationService';
+import { awardXP, XP_REWARDS, checkAndAwardBadges } from '../services/gamificationService';
 
 export const createRating = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
@@ -78,6 +79,14 @@ export const createRating = async (req: AuthenticatedRequest, res: Response, nex
     );
 
     res.status(201).json(ratingObj);
+
+    // Gamification
+    if (stars === 5) {
+      await awardXP(rateeId, XP_REWARDS.RECEIVE_5_STAR, 'Received a 5-star rating');
+    } else if (stars === 4) {
+      await awardXP(rateeId, XP_REWARDS.RECEIVE_4_STAR, 'Received a 4-star rating');
+    }
+    await checkAndAwardBadges(rateeId);
   } catch (error) {
     next(error);
   }

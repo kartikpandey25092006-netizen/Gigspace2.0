@@ -9,6 +9,7 @@ import { Browse } from './pages/Browse';
 import { ListingDetail } from './pages/ListingDetail';
 import { Chat } from './pages/Chat';
 import { Profile } from './pages/Profile';
+import { Leaderboard } from './pages/Leaderboard';
 import { Admin } from './pages/Admin';
 import { initSocketConnection, disconnectSocket } from './services/socket';
 
@@ -95,6 +96,14 @@ const AppContent: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/leaderboard"
+              element={
+                <ProtectedRoute>
+                  <Leaderboard />
                 </ProtectedRoute>
               }
             />
