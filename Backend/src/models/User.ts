@@ -5,6 +5,10 @@ export interface IUserDocument extends Omit<IUser, '_id' | 'createdAt' | 'update
   passwordHash: string;
   createdAt: Date;
   updatedAt: Date;
+  xp: number;
+  badges: string[];
+  streak: number;
+  lastActivityDate?: Date;
 }
 
 const UserSchema = new Schema<IUserDocument>({
@@ -14,7 +18,12 @@ const UserSchema = new Schema<IUserDocument>({
   role: { type: String, enum: ['student', 'admin'], default: 'student' },
   college: { type: String, required: true, trim: true },
   ratingAvg: { type: Number, default: 0 },
-  ratingCount: { type: Number, default: 0 }
+  ratingCount: { type: Number, default: 0 },
+  // Gamification fields
+  xp: { type: Number, default: 0 },
+  badges: { type: [String], default: [] },
+  streak: { type: Number, default: 0 },
+  lastActivityDate: { type: Date }
 }, {
   timestamps: true
 });
