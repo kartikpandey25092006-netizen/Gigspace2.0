@@ -199,3 +199,12 @@ export const updateStreak = async (userId: string) => {
     console.error('[Gamification] updateStreak error:', err);
   }
 };
+
+// ─── Reputation Score ─────────────────────────────────────────────────────────
+export const calculateReputationScore = (ratingAvg: number, badgesCount: number, streak: number) => {
+  const ratingWeight = 100;
+  const badgeWeight = 50;
+  const streakWeight = 10;
+  
+  return Math.round((ratingAvg * ratingWeight) + (badgesCount * badgeWeight) + (streak * streakWeight));
+};

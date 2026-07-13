@@ -11,6 +11,7 @@ export interface IUser {
   xp: number;
   badges: string[];
   streak: number;
+  leaderboardOptIn: boolean;
   lastActivityDate?: Date;
   createdAt: Date;
   updatedAt: Date;

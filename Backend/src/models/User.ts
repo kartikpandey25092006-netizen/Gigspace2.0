@@ -8,6 +8,7 @@ export interface IUserDocument extends Omit<IUser, '_id' | 'createdAt' | 'update
   xp: number;
   badges: string[];
   streak: number;
+  leaderboardOptIn: boolean;
   lastActivityDate?: Date;
 }
 
@@ -23,6 +24,7 @@ const UserSchema = new Schema<IUserDocument>({
   xp: { type: Number, default: 0 },
   badges: { type: [String], default: [] },
   streak: { type: Number, default: 0 },
+  leaderboardOptIn: { type: Boolean, default: false },
   lastActivityDate: { type: Date }
 }, {
   timestamps: true

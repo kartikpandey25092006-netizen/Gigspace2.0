@@ -196,3 +196,43 @@ export const changePassword = async (req: any, res: Response, next: NextFunction
     next(error);
   }
 };
+
+export const toggleLeaderboardOptIn = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.id;
+    const { optIn } = req.body;
+
+    if (optIn === undefined) {
+      return next(new ApiError(400, 'optIn boolean is required'));
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { leaderboardOptIn: optIn },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return next(new ApiError(404, 'User not found'));
+    }
+
+    res.status(200).json({
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        college: updatedUser.college,
+        ratingAvg: updatedUser.ratingAvg,
+        ratingCount: updatedUser.ratingCount,
+        xp: updatedUser.xp,
+        streak: updatedUser.streak,
+        badges: updatedUser.badges,
+        leaderboardOptIn: updatedUser.leaderboardOptIn,
+        lastActivityDate: updatedUser.lastActivityDate
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

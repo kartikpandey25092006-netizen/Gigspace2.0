@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store';
-import { logout } from '../store/authSlice';
+import { logout, updateUser } from '../store/authSlice';
 import { api } from '../services/api';
-import { User as UserIcon, Star, Key, Receipt, Activity, Clock, ShieldCheck, Flame, Award, TrendingUp } from 'lucide-react';
+import { User as UserIcon, Star, Key, Receipt, Activity, Clock, ShieldCheck, Flame, Award, TrendingUp, Trophy } from 'lucide-react';
 import { getLevelInfo, ALL_BADGES } from '../utils/gamificationUtils';
 import type { ITransaction, IGig, IRental } from '../../../Shared/src/types';
 
@@ -57,6 +57,16 @@ export const Profile: React.FC = () => {
       setNewPassword('');
     } catch (err: any) {
       setPwError(err.response?.data?.message || 'Failed to update password');
+    }
+  };
+
+  const handleOptInToggle = async () => {
+    try {
+      const newStatus = !user?.leaderboardOptIn;
+      const res = await api.patch('/auth/opt-in', { optIn: newStatus });
+      dispatch(updateUser(res.data.user));
+    } catch (err) {
+      console.error('Failed to toggle opt-in status', err);
     }
   };
 
@@ -311,6 +321,28 @@ export const Profile: React.FC = () => {
                 Change Password
               </button>
             </form>
+          </div>
+
+          <div className="glass-panel p-6 rounded-2xl">
+            <div className="flex items-center space-x-2 mb-4">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+              <h2 className="text-lg font-bold text-white">Leaderboard Settings</h2>
+            </div>
+            <p className="text-xs text-slate-400 mb-4">
+              Choose whether you want to appear on the public campus leaderboard. Your ranking is based on a composite Reputation Score (rating, badges, and streaks).
+            </p>
+            <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-800">
+              <div>
+                <p className="text-sm font-semibold text-slate-200">Public Visibility</p>
+                <p className="text-[10px] text-slate-500">{user.leaderboardOptIn ? 'You are currently visible on the leaderboard.' : 'You are hidden from the leaderboard.'}</p>
+              </div>
+              <button
+                onClick={handleOptInToggle}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user.leaderboardOptIn ? 'bg-indigo-500' : 'bg-slate-700'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user.leaderboardOptIn ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
           </div>
         </div>
 
