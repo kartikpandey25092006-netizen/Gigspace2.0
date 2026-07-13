@@ -9,7 +9,7 @@ import { awardXP, XP_REWARDS, checkAndAwardBadges } from '../services/gamificati
 
 export const createGig = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { title, description, price, category } = req.body;
+    const { title, description, price, category, locationDetails, requirementNotes } = req.body;
     const posterId = req.user?.id;
 
     if (!title || !description || !price || !category) {
@@ -22,6 +22,8 @@ export const createGig = async (req: AuthenticatedRequest, res: Response, next: 
       description,
       price,
       category,
+      locationDetails: typeof locationDetails === 'string' ? locationDetails.trim() : '',
+      requirementNotes: typeof requirementNotes === 'string' ? requirementNotes.trim() : '',
       status: 'open'
     });
 
@@ -94,7 +96,7 @@ export const getGigById = async (req: AuthenticatedRequest, res: Response, next:
 
 export const updateGig = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { title, description, price, category } = req.body;
+    const { title, description, price, category, locationDetails, requirementNotes } = req.body;
     const gigId = req.params.id;
     const userId = req.user?.id;
 
@@ -115,6 +117,12 @@ export const updateGig = async (req: AuthenticatedRequest, res: Response, next: 
     gig.description = description || gig.description;
     gig.price = price !== undefined ? price : gig.price;
     gig.category = category || gig.category;
+    if (locationDetails !== undefined) {
+      gig.locationDetails = typeof locationDetails === 'string' ? locationDetails.trim() : gig.locationDetails;
+    }
+    if (requirementNotes !== undefined) {
+      gig.requirementNotes = typeof requirementNotes === 'string' ? requirementNotes.trim() : gig.requirementNotes;
+    }
 
     await gig.save();
     res.status(200).json(gig);

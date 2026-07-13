@@ -4,6 +4,10 @@ export interface IUser {
   _id: string;
   name: string;
   email: string;
+  primaryEmail: string;
+  googleId?: string;
+  collegeEmail?: string;
+  isVerified: boolean;
   role: UserRole;
   college: string;
   ratingAvg: number;
@@ -27,12 +31,21 @@ export interface IGig {
   description: string;
   price: number;
   category: string;
+  locationDetails?: string;
+  requirementNotes?: string;
   status: GigStatus;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export type RentalStatus = 'available' | 'rented' | 'maintenance';
+
+export interface IRentalSpecs {
+  brand?: string;
+  model?: string;
+  condition: 'new' | 'good' | 'fair' | 'worn';
+  includesAccessories?: string[];
+}
 
 export interface IRental {
   _id: string;
@@ -41,6 +54,9 @@ export interface IRental {
   description: string;
   pricePerDay: number;
   category: string;
+  specs: IRentalSpecs;
+  pickupLocation: string;
+  availabilityNotes?: string;
   status: RentalStatus;
   availabilityCalendar: string[]; // List of ISO date strings representing rented days
   createdAt: Date;

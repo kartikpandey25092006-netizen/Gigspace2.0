@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Navigate } from 'react-router-dom';
 import type { RootState } from '../store';
@@ -22,9 +22,40 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [college, setCollege] = useState('');
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get('accessToken');
+    const refreshToken = params.get('refreshToken');
+    const encodedUser = params.get('user');
+    const oauthError = params.get('oauthError');
+
+    if (oauthError) {
+      setError(oauthError);
+      window.history.replaceState({}, document.title, '/login');
+      return;
+    }
+
+    if (accessToken && refreshToken && encodedUser) {
+      try {
+        const loggedInUser = JSON.parse(encodedUser);
+        dispatch(setCredentials({ user: loggedInUser, accessToken, refreshToken }));
+        initSocketConnection(loggedInUser.id);
+        window.history.replaceState({}, document.title, '/login');
+        navigate('/');
+      } catch (err) {
+        setError('Google sign-in completed, but the response could not be read.');
+      }
+    }
+  }, [dispatch, navigate]);
+
   if (user) {
     return <Navigate to="/" replace />;
   }
+
+  const handleGoogleSignIn = () => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
+    window.location.href = `${apiUrl}/auth/google`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,8 +73,8 @@ export const Login: React.FC = () => {
         navigate('/');
       } else {
         // Register logic
-        if (!email.toLowerCase().endsWith('.edu')) {
-          throw new Error('Must sign up with a valid college email address ending in .edu');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          throw new Error('Enter a valid email address');
         }
 
         const response = await api.post('/auth/signup', { name, email, password, college });
@@ -77,7 +108,7 @@ export const Login: React.FC = () => {
             {isLogin ? 'Sign in to Campus Gigs' : 'Join the Marketplace'}
           </h2>
           <p className="mt-2 text-sm text-slate-400">
-            {isLogin ? 'Welcome back! Log in with your college credentials.' : 'Post student gigs, rent/borrow gear, and collaborate.'}
+            {isLogin ? 'Welcome back! Sign in with Google.' : 'Create an account, then link your VIT email to post and chat.'}
           </p>
         </div>
 
@@ -87,7 +118,17 @@ export const Login: React.FC = () => {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <div className="mt-8 space-y-4">
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            className="w-full flex items-center justify-center px-4 py-3 border border-slate-700 text-sm font-semibold rounded-lg text-slate-100 bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          >
+            Sign in with Google
+          </button>
+        </div>
+
+        <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             {!isLogin && (
               <>
@@ -119,14 +160,14 @@ export const Login: React.FC = () => {
             )}
 
             <div>
-              <label htmlFor="email-input" className="block text-xs font-semibold text-slate-400 uppercase tracking-wide">College Email (.edu)</label>
+              <label htmlFor="email-input" className="block text-xs font-semibold text-slate-400 uppercase tracking-wide">Email</label>
               <input
                 id="email-input"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@college.edu"
+                placeholder="you@gmail.com"
                 className="mt-1 block w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
             </div>

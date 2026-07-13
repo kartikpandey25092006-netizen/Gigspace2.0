@@ -23,6 +23,14 @@ export const Browse: React.FC = () => {
   const [newDescription, setNewDescription] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newCategory, setNewCategory] = useState('');
+  const [rentalBrand, setRentalBrand] = useState('');
+  const [rentalModel, setRentalModel] = useState('');
+  const [rentalCondition, setRentalCondition] = useState<'new' | 'good' | 'fair' | 'worn'>('good');
+  const [rentalAccessories, setRentalAccessories] = useState('');
+  const [pickupLocation, setPickupLocation] = useState('');
+  const [availabilityNotes, setAvailabilityNotes] = useState('');
+  const [gigLocationDetails, setGigLocationDetails] = useState('');
+  const [gigRequirementNotes, setGigRequirementNotes] = useState('');
 
   // Load categories and initial feed
   useEffect(() => {
@@ -69,6 +77,12 @@ export const Browse: React.FC = () => {
   const handleCreateListing = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle || !newDescription || !newPrice || !newCategory) return;
+    if (tab === 'rental' && !pickupLocation.trim()) return;
+
+    const accessoryList = rentalAccessories
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
 
     try {
       if (tab === 'gig') {
@@ -76,14 +90,24 @@ export const Browse: React.FC = () => {
           title: newTitle,
           description: newDescription,
           price: Number(newPrice),
-          category: newCategory
+          category: newCategory,
+          locationDetails: gigLocationDetails,
+          requirementNotes: gigRequirementNotes
         });
       } else {
         await api.post('/rentals', {
           title: newTitle,
           description: newDescription,
           pricePerDay: Number(newPrice),
-          category: newCategory
+          category: newCategory,
+          specs: {
+            brand: rentalBrand,
+            model: rentalModel,
+            condition: rentalCondition,
+            includesAccessories: accessoryList
+          },
+          pickupLocation,
+          availabilityNotes
         });
       }
 
@@ -93,6 +117,14 @@ export const Browse: React.FC = () => {
       setNewDescription('');
       setNewPrice('');
       setNewCategory('');
+      setRentalBrand('');
+      setRentalModel('');
+      setRentalCondition('good');
+      setRentalAccessories('');
+      setPickupLocation('');
+      setAvailabilityNotes('');
+      setGigLocationDetails('');
+      setGigRequirementNotes('');
       fetchFeed();
     } catch (err) {
       console.error(err);
@@ -278,7 +310,7 @@ export const Browse: React.FC = () => {
       {/* Creation Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 relative">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
             <h2 className="text-xl font-bold text-white mb-4">
               {tab === 'gig' ? 'Post a New Campus Gig' : 'List a Rental Item'}
             </h2>
@@ -308,6 +340,33 @@ export const Browse: React.FC = () => {
                   className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              {tab === 'gig' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="gig-location" className="block text-xs font-semibold text-slate-400 uppercase">Location Details</label>
+                    <input
+                      id="gig-location"
+                      type="text"
+                      placeholder="e.g. Library study room, remote"
+                      value={gigLocationDetails}
+                      onChange={(e) => setGigLocationDetails(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="gig-requirements" className="block text-xs font-semibold text-slate-400 uppercase">Requirements</label>
+                    <input
+                      id="gig-requirements"
+                      type="text"
+                      placeholder="e.g. Bring laptop, MATLAB skills"
+                      value={gigRequirementNotes}
+                      onChange={(e) => setGigRequirementNotes(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -340,6 +399,86 @@ export const Browse: React.FC = () => {
                   </select>
                 </div>
               </div>
+
+              {tab === 'rental' && (
+                <div className="space-y-4 pt-2 border-t border-slate-800/70">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label htmlFor="rental-brand" className="block text-xs font-semibold text-slate-400 uppercase">Brand</label>
+                      <input
+                        id="rental-brand"
+                        type="text"
+                        placeholder="e.g. Casio"
+                        value={rentalBrand}
+                        onChange={(e) => setRentalBrand(e.target.value)}
+                        className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="rental-model" className="block text-xs font-semibold text-slate-400 uppercase">Model</label>
+                      <input
+                        id="rental-model"
+                        type="text"
+                        placeholder="e.g. fx-991EX"
+                        value={rentalModel}
+                        onChange={(e) => setRentalModel(e.target.value)}
+                        className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="rental-condition" className="block text-xs font-semibold text-slate-400 uppercase">Condition</label>
+                      <select
+                        id="rental-condition"
+                        value={rentalCondition}
+                        onChange={(e) => setRentalCondition(e.target.value as typeof rentalCondition)}
+                        className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="new">New</option>
+                        <option value="good">Good</option>
+                        <option value="fair">Fair</option>
+                        <option value="worn">Worn</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="rental-accessories" className="block text-xs font-semibold text-slate-400 uppercase">Includes Accessories</label>
+                    <input
+                      id="rental-accessories"
+                      type="text"
+                      placeholder="Charger, case, manual"
+                      value={rentalAccessories}
+                      onChange={(e) => setRentalAccessories(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="pickup-location" className="block text-xs font-semibold text-slate-400 uppercase">Pickup Location</label>
+                    <input
+                      id="pickup-location"
+                      type="text"
+                      required={tab === 'rental'}
+                      placeholder="e.g. Main gate, library lobby"
+                      value={pickupLocation}
+                      onChange={(e) => setPickupLocation(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="availability-notes" className="block text-xs font-semibold text-slate-400 uppercase">Availability Notes</label>
+                    <textarea
+                      id="availability-notes"
+                      rows={2}
+                      placeholder="Available weekdays after 5pm"
+                      value={availabilityNotes}
+                      onChange={(e) => setAvailabilityNotes(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-800">
                 <button

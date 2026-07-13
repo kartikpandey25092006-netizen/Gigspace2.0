@@ -7,6 +7,33 @@ import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 import { createNotification } from '../services/notificationService';
 import { awardXP, XP_REWARDS, checkAndAwardBadges } from '../services/gamificationService';
 
+const RENTAL_CONDITIONS = ['new', 'good', 'fair', 'worn'] as const;
+type RentalCondition = typeof RENTAL_CONDITIONS[number];
+
+const normalizeStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const normalizeRentalSpecs = (specs: any = {}) => {
+  const condition = specs.condition || 'good';
+
+  if (!RENTAL_CONDITIONS.includes(condition as RentalCondition)) {
+    throw new ApiError(400, 'Condition must be one of: new, good, fair, worn');
+  }
+
+  return {
+    brand: typeof specs.brand === 'string' ? specs.brand.trim() : '',
+    model: typeof specs.model === 'string' ? specs.model.trim() : '',
+    condition,
+    includesAccessories: normalizeStringArray(specs.includesAccessories)
+  };
+};
+
 // Helper to get array of dates between start and end (inclusive) in YYYY-MM-DD format
 const getDatesInRange = (startDate: Date, endDate: Date): string[] => {
   const dates: string[] = [];
@@ -25,12 +52,14 @@ const getDatesInRange = (startDate: Date, endDate: Date): string[] => {
 
 export const createRental = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { title, description, pricePerDay, category } = req.body;
+    const { title, description, pricePerDay, category, specs, pickupLocation, availabilityNotes } = req.body;
     const ownerId = req.user?.id;
 
     if (!title || !description || !pricePerDay || !category) {
       return next(new ApiError(400, 'Title, description, pricePerDay, and category are required'));
     }
+
+    const normalizedSpecs = normalizeRentalSpecs(specs);
 
     const newRental = await Rental.create({
       ownerId,
@@ -38,6 +67,9 @@ export const createRental = async (req: AuthenticatedRequest, res: Response, nex
       description,
       pricePerDay,
       category,
+      specs: normalizedSpecs,
+      pickupLocation: typeof pickupLocation === 'string' ? pickupLocation.trim() : '',
+      availabilityNotes: typeof availabilityNotes === 'string' ? availabilityNotes.trim() : '',
       status: 'available',
       availabilityCalendar: []
     });
@@ -110,7 +142,7 @@ export const getRentalById = async (req: AuthenticatedRequest, res: Response, ne
 
 export const updateRental = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { title, description, pricePerDay, category, status } = req.body;
+    const { title, description, pricePerDay, category, status, specs, pickupLocation, availabilityNotes } = req.body;
     const rentalId = req.params.id;
     const userId = req.user?.id;
 
@@ -128,6 +160,18 @@ export const updateRental = async (req: AuthenticatedRequest, res: Response, nex
     rental.pricePerDay = pricePerDay !== undefined ? pricePerDay : rental.pricePerDay;
     rental.category = category || rental.category;
     rental.status = status || rental.status;
+    if (specs !== undefined) {
+      rental.specs = {
+        ...((rental.specs || {}) as any),
+        ...normalizeRentalSpecs({ ...((rental.specs || {}) as any), ...specs })
+      };
+    }
+    if (pickupLocation !== undefined) {
+      rental.pickupLocation = typeof pickupLocation === 'string' ? pickupLocation.trim() : rental.pickupLocation;
+    }
+    if (availabilityNotes !== undefined) {
+      rental.availabilityNotes = typeof availabilityNotes === 'string' ? availabilityNotes.trim() : rental.availabilityNotes;
+    }
 
     await rental.save();
     res.status(200).json(rental);

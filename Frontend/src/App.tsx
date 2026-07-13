@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Provider, useSelector } from 'react-redux';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { store, type RootState } from './store';
 import { Navbar } from './components/Navbar';
@@ -12,6 +12,8 @@ import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
 import { Admin } from './pages/Admin';
 import { initSocketConnection, disconnectSocket } from './services/socket';
+import { api } from './services/api';
+import { updateUser } from './store/authSlice';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +36,136 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return user && user.role === 'admin' ? <>{children}</> : <Navigate to="/" replace />;
 };
 
+const VerificationBanner: React.FC = () => {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [showModal, setShowModal] = useState(false);
+  const [collegeEmail, setCollegeEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  if (!user || user.isVerified) return null;
+
+  const sendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const res = await api.post('/auth/link-college-email', { collegeEmail });
+      setCollegeEmail(res.data.collegeEmail || collegeEmail);
+      setOtpSent(true);
+      setMessage('OTP sent. Check your VIT inbox.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const res = await api.post('/auth/verify-otp', { collegeEmail, otp });
+      dispatch(updateUser(res.data.user));
+      setShowModal(false);
+      setOtp('');
+      setOtpSent(false);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to verify OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="border-b border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <span>Link your VIT email to start posting listings and using chat.</span>
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="px-3 py-1.5 rounded bg-yellow-400 text-slate-950 text-xs font-bold hover:bg-yellow-300 transition"
+          >
+            Verify VIT Email
+          </button>
+        </div>
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-white">Verify your VIT email</h2>
+            <p className="text-sm text-slate-400 mt-2">Use your @vitstudent.ac.in or @vit.ac.in address to unlock posting and chat.</p>
+
+            {error && <div className="mt-4 p-3 rounded bg-red-950/30 border border-red-500/30 text-red-300 text-sm">{error}</div>}
+            {message && <div className="mt-4 p-3 rounded bg-green-950/30 border border-green-500/30 text-green-300 text-sm">{message}</div>}
+
+            <form onSubmit={otpSent ? verifyOtp : sendOtp} className="mt-5 space-y-4">
+              <div>
+                <label htmlFor="vit-email" className="block text-xs font-semibold text-slate-400 uppercase">VIT Email</label>
+                <input
+                  id="vit-email"
+                  type="email"
+                  required
+                  disabled={otpSent}
+                  value={collegeEmail}
+                  onChange={(e) => setCollegeEmail(e.target.value)}
+                  placeholder="you@vitstudent.ac.in"
+                  className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-70"
+                />
+              </div>
+
+              {otpSent && (
+                <div>
+                  <label htmlFor="vit-otp" className="block text-xs font-semibold text-slate-400 uppercase">OTP</label>
+                  <input
+                    id="vit-otp"
+                    type="text"
+                    required
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    placeholder="123456"
+                    className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded transition"
+                >
+                  Later
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition disabled:opacity-50"
+                >
+                  {otpSent ? 'Verify OTP' : 'Send OTP'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
 const AppContent: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
 
@@ -53,6 +185,7 @@ const AppContent: React.FC = () => {
     <Router>
       <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100">
         <Navbar />
+        <VerificationBanner />
         <main className="flex-1">
           <Routes>
             {/* Onboarding route */}

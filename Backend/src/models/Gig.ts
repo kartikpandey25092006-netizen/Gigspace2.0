@@ -15,6 +15,8 @@ const GigSchema = new Schema<IGigDocument>({
   description: { type: String, required: true },
   price: { type: Number, required: true, min: 0 },
   category: { type: String, required: true, index: true },
+  locationDetails: { type: String, trim: true, default: '' },
+  requirementNotes: { type: String, trim: true, default: '' },
   status: { type: String, enum: ['open', 'accepted', 'completed', 'cancelled'], default: 'open', index: true }
 }, {
   timestamps: true

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UserRole } from '../../../Shared/src/types';
+import { User } from '../models/User';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -40,4 +41,21 @@ export const authorizeRoles = (...roles: UserRole[]) => {
 
     next();
   };
+};
+
+export const requireVerified = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  const user = await User.findById(req.user.id).select('isVerified');
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  if (!user.isVerified) {
+    return res.status(403).json({ message: 'Link and verify your VIT email to use this feature' });
+  }
+
+  next();
 };

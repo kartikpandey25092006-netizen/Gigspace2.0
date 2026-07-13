@@ -1,12 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Profile } from 'passport-google-oauth20';
 import { User } from '../models/User';
 import { ApiError } from '../middlewares/errorMiddleware';
 import { updateStreak } from '../services/gamificationService';
+import { generateAndSendOtp, verifyOtp, VIT_EMAIL_REGEX } from '../services/otpService';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_jwt_secret_key_12345';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'fallback_refresh_secret_key_67890';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 const generateTokens = (user: { id: string; email: string; role: string }) => {
   const accessToken = jwt.sign(
@@ -22,6 +25,89 @@ const generateTokens = (user: { id: string; email: string; role: string }) => {
   );
 
   return { accessToken, refreshToken };
+};
+
+const buildAuthUser = (user: any) => ({
+  id: user._id,
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  primaryEmail: user.primaryEmail || user.email,
+  googleId: user.googleId,
+  collegeEmail: user.collegeEmail,
+  isVerified: Boolean(user.isVerified),
+  role: user.role,
+  college: user.college,
+  ratingAvg: user.ratingAvg,
+  ratingCount: user.ratingCount,
+  xp: user.xp,
+  streak: user.streak,
+  badges: user.badges,
+  leaderboardOptIn: user.leaderboardOptIn,
+  lastActivityDate: user.lastActivityDate
+});
+
+export const findOrCreateGoogleUser = async (_accessToken: string, _refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {
+  try {
+    const primaryEmail = profile.emails?.[0]?.value?.toLowerCase();
+    if (!primaryEmail) {
+      return done(new ApiError(400, 'Google account did not provide an email address'));
+    }
+
+    let user = await User.findOne({ googleId: profile.id });
+
+    if (!user) {
+      user = await User.findOne({ primaryEmail });
+    }
+
+    if (!user) {
+      user = await User.create({
+        name: profile.displayName || primaryEmail.split('@')[0],
+        email: primaryEmail,
+        primaryEmail,
+        googleId: profile.id,
+        role: 'student',
+        college: 'VIT'
+      });
+    } else if (!user.googleId) {
+      user.googleId = profile.id;
+      user.primaryEmail = user.primaryEmail || primaryEmail;
+      user.email = user.email || primaryEmail;
+      await user.save();
+    }
+
+    return done(null, user);
+  } catch (error) {
+    return done(error);
+  }
+};
+
+export const googleCallback = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = req.user as any;
+    if (!user) {
+      return next(new ApiError(401, 'Google authentication failed'));
+    }
+
+    const tokens = generateTokens({
+      id: user._id.toString(),
+      email: user.primaryEmail || user.email,
+      role: user.role
+    });
+
+    await updateStreak(user._id.toString());
+    const updatedUser = await User.findById(user._id);
+    const authUser = buildAuthUser(updatedUser || user);
+    const params = new URLSearchParams({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: JSON.stringify(authUser)
+    });
+
+    res.redirect(`${FRONTEND_URL}/login?${params.toString()}`);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
@@ -53,6 +139,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
     const newUser = await User.create({
       name,
       email: email.toLowerCase(),
+      primaryEmail: email.toLowerCase(),
       passwordHash,
       role: 'student',
       college
@@ -65,19 +152,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
     });
 
     res.status(201).json({
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        college: newUser.college,
-        ratingAvg: newUser.ratingAvg,
-        ratingCount: newUser.ratingCount,
-        xp: newUser.xp,
-        streak: newUser.streak,
-        badges: newUser.badges,
-        lastActivityDate: newUser.lastActivityDate
-      },
+      user: buildAuthUser(newUser),
       ...tokens
     });
   } catch (error) {
@@ -98,6 +173,10 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       return next(new ApiError(401, 'Invalid email or password'));
     }
 
+    if (!user.passwordHash) {
+      return next(new ApiError(401, 'Use Google sign-in for this account'));
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       return next(new ApiError(401, 'Invalid email or password'));
@@ -114,19 +193,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const updatedUser = await User.findById(user._id);
 
     res.status(200).json({
-      user: {
-        id: updatedUser?._id,
-        name: updatedUser?.name,
-        email: updatedUser?.email,
-        role: updatedUser?.role,
-        college: updatedUser?.college,
-        ratingAvg: updatedUser?.ratingAvg,
-        ratingCount: updatedUser?.ratingCount,
-        xp: updatedUser?.xp,
-        streak: updatedUser?.streak,
-        badges: updatedUser?.badges,
-        lastActivityDate: updatedUser?.lastActivityDate
-      },
+      user: buildAuthUser(updatedUser || user),
       ...tokens
     });
   } catch (error) {
@@ -157,7 +224,66 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
         role: user.role
       });
 
-      res.status(200).json(tokens);
+    res.status(200).json(tokens);
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const linkCollegeEmail = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.id;
+    const { collegeEmail } = req.body;
+
+    if (!collegeEmail || typeof collegeEmail !== 'string') {
+      return next(new ApiError(400, 'VIT email is required'));
+    }
+
+    const normalizedEmail = collegeEmail.toLowerCase().trim();
+    if (!VIT_EMAIL_REGEX.test(normalizedEmail)) {
+      return next(new ApiError(400, 'Use a valid VIT email ending in @vitstudent.ac.in or @vit.ac.in'));
+    }
+
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      return next(new ApiError(404, 'User not found'));
+    }
+
+    if (currentUser.collegeEmail && currentUser.isVerified) {
+      return next(new ApiError(400, 'A VIT email is already linked to this account'));
+    }
+
+    const linkedUser = await User.findOne({ collegeEmail: normalizedEmail, _id: { $ne: userId } });
+    if (linkedUser) {
+      return next(new ApiError(409, 'This VIT email is already linked to another account'));
+    }
+
+    await generateAndSendOtp(normalizedEmail);
+    res.status(200).json({ message: 'OTP sent to your VIT email', collegeEmail: normalizedEmail });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyCollegeEmailOtp = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.id;
+    const { collegeEmail, otp } = req.body;
+
+    if (!collegeEmail || !otp) {
+      return next(new ApiError(400, 'VIT email and OTP are required'));
+    }
+
+    const normalizedEmail = String(collegeEmail).toLowerCase().trim();
+    if (!VIT_EMAIL_REGEX.test(normalizedEmail)) {
+      return next(new ApiError(400, 'Use a valid VIT email ending in @vitstudent.ac.in or @vit.ac.in'));
+    }
+
+    const updatedUser = await verifyOtp(userId, normalizedEmail, String(otp).trim());
+    res.status(200).json({
+      message: 'VIT email verified successfully',
+      user: buildAuthUser(updatedUser)
     });
   } catch (error) {
     next(error);
@@ -176,6 +302,10 @@ export const changePassword = async (req: any, res: Response, next: NextFunction
     const user = await User.findById(userId).select('+passwordHash');
     if (!user) {
       return next(new ApiError(404, 'User not found'));
+    }
+
+    if (!user.passwordHash) {
+      return next(new ApiError(400, 'Password changes are not available for Google sign-in accounts'));
     }
 
     const isMatch = await bcrypt.compare(oldPassword, user.passwordHash);
@@ -217,20 +347,7 @@ export const toggleLeaderboardOptIn = async (req: any, res: Response, next: Next
     }
 
     res.status(200).json({
-      user: {
-        id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        college: updatedUser.college,
-        ratingAvg: updatedUser.ratingAvg,
-        ratingCount: updatedUser.ratingCount,
-        xp: updatedUser.xp,
-        streak: updatedUser.streak,
-        badges: updatedUser.badges,
-        leaderboardOptIn: updatedUser.leaderboardOptIn,
-        lastActivityDate: updatedUser.lastActivityDate
-      }
+      user: buildAuthUser(updatedUser)
     });
   } catch (error) {
     next(error);

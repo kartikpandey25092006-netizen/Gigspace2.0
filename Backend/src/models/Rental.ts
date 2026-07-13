@@ -13,6 +13,14 @@ const RentalSchema = new Schema<IRentalDocument>({
   description: { type: String, required: true },
   pricePerDay: { type: Number, required: true, min: 0 },
   category: { type: String, required: true, index: true },
+  specs: {
+    brand: { type: String, trim: true, default: '' },
+    model: { type: String, trim: true, default: '' },
+    condition: { type: String, enum: ['new', 'good', 'fair', 'worn'], required: true, default: 'good' },
+    includesAccessories: [{ type: String, trim: true }]
+  },
+  pickupLocation: { type: String, trim: true, default: '' },
+  availabilityNotes: { type: String, trim: true, default: '' },
   status: { type: String, enum: ['available', 'rented', 'maintenance'], default: 'available', index: true },
   availabilityCalendar: [{ type: String }] // Array of date strings in YYYY-MM-DD format representing booked/rented days
 }, {

@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import { api } from '../services/api';
-import { Calendar, DollarSign, User as UserIcon, MessageSquare, Star, Award, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Calendar, DollarSign, User as UserIcon, MessageSquare, Star, Award, CheckCircle2, ShieldAlert, MapPin, ClipboardList, PackageCheck } from 'lucide-react';
 
 export const ListingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -163,6 +163,14 @@ export const ListingDetail: React.FC = () => {
 
   const owner = isGig ? data.posterId : data.ownerId;
   const isMine = owner?._id === user?.id;
+  const notSpecified = 'Not specified';
+  const rentalSpecs = data.specs || {};
+  const conditionLabel = rentalSpecs.condition
+    ? String(rentalSpecs.condition).charAt(0).toUpperCase() + String(rentalSpecs.condition).slice(1)
+    : notSpecified;
+  const accessories = Array.isArray(rentalSpecs.includesAccessories)
+    ? rentalSpecs.includesAccessories.filter(Boolean)
+    : [];
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -192,6 +200,89 @@ export const ListingDetail: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {!isGig && (
+            <div className="glass-panel p-6 rounded-2xl">
+              <div className="flex items-center justify-between gap-4 mb-5">
+                <h2 className="text-lg font-bold text-white flex items-center">
+                  <ClipboardList className="w-5 h-5 mr-2 text-blue-400" />
+                  Item Specs
+                </h2>
+                <span className="text-xs text-slate-500">Review before booking</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs text-slate-500 block">Brand</span>
+                  <span className="text-sm font-semibold text-slate-200">{rentalSpecs.brand || notSpecified}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-500 block">Model</span>
+                  <span className="text-sm font-semibold text-slate-200">{rentalSpecs.model || notSpecified}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-500 block">Condition</span>
+                  <span className="inline-flex items-center mt-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-800 text-slate-300">
+                    {conditionLabel}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-500 block">Pickup Location</span>
+                  <span className="text-sm font-semibold text-slate-200 flex items-center mt-1">
+                    <MapPin className="w-4 h-4 mr-1.5 text-slate-500" />
+                    {data.pickupLocation || notSpecified}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-5 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs text-slate-500 block">Included Accessories</span>
+                  {accessories.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {accessories.map((item: string) => (
+                        <span key={item} className="inline-flex items-center px-2.5 py-1 rounded bg-slate-800 text-xs font-semibold text-slate-300">
+                          <PackageCheck className="w-3.5 h-3.5 mr-1.5 text-green-400" />
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-sm font-semibold text-slate-200 mt-1 block">{notSpecified}</span>
+                  )}
+                </div>
+                <div>
+                  <span className="text-xs text-slate-500 block">Availability Notes</span>
+                  <p className="text-sm font-semibold text-slate-200 mt-1 whitespace-pre-wrap">
+                    {data.availabilityNotes || notSpecified}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isGig && (data.locationDetails || data.requirementNotes) && (
+            <div className="glass-panel p-6 rounded-2xl">
+              <h2 className="text-lg font-bold text-white flex items-center mb-5">
+                <ClipboardList className="w-5 h-5 mr-2 text-blue-400" />
+                Gig Details
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs text-slate-500 block">Location Details</span>
+                  <p className="text-sm font-semibold text-slate-200 mt-1 whitespace-pre-wrap">
+                    {data.locationDetails || notSpecified}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-500 block">Requirements</span>
+                  <p className="text-sm font-semibold text-slate-200 mt-1 whitespace-pre-wrap">
+                    {data.requirementNotes || notSpecified}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Peer Owner details */}
           <div className="glass-panel p-6 rounded-2xl flex items-center justify-between">

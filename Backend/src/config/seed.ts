@@ -56,6 +56,9 @@ const seed = async () => {
       {
         name: 'Alice Johnson',
         email: 'alice@college.edu',
+        primaryEmail: 'alice@college.edu',
+        collegeEmail: 'alice@vitstudent.ac.in',
+        isVerified: true,
         passwordHash,
         role: 'student',
         college: 'State University',
@@ -65,6 +68,9 @@ const seed = async () => {
       {
         name: 'Bob Smith',
         email: 'bob@college.edu',
+        primaryEmail: 'bob@college.edu',
+        collegeEmail: 'bob@vitstudent.ac.in',
+        isVerified: true,
         passwordHash,
         role: 'student',
         college: 'State University',
@@ -74,6 +80,9 @@ const seed = async () => {
       {
         name: 'Charlie Brown',
         email: 'charlie@college.edu',
+        primaryEmail: 'charlie@college.edu',
+        collegeEmail: 'charlie@vitstudent.ac.in',
+        isVerified: true,
         passwordHash,
         role: 'student',
         college: 'State University',
@@ -83,6 +92,9 @@ const seed = async () => {
       {
         name: 'Admin Moderator',
         email: 'admin@college.edu',
+        primaryEmail: 'admin@college.edu',
+        collegeEmail: 'admin@vit.ac.in',
+        isVerified: true,
         passwordHash,
         role: 'admin',
         college: 'State University',
