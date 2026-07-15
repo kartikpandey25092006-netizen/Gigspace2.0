@@ -4,14 +4,17 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 min-h-screen font-sans;
+    @apply bg-black text-zinc-100 min-h-screen font-sans;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    letter-spacing: -0.01em;
   }
+
+  button, input, textarea, select { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A84FF] focus-visible:ring-offset-2 focus-visible:ring-offset-black; }
 }
 
 /* Glassmorphism utility card styling */
 .glass-panel {
-  background: rgba(30, 41, 59, 0.4);
+  background: rgba(20, 20, 22, 0.78);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -22,11 +25,11 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-slate-900;
+  @apply bg-black;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-700 rounded;
+  @apply bg-zinc-700 rounded;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-600;
+  @apply bg-zinc-500;
 }

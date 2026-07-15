@@ -6,6 +6,7 @@ import { ApiError } from '../middlewares/errorMiddleware';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 import { createNotification } from '../services/notificationService';
 import { awardXP, XP_REWARDS, checkAndAwardBadges } from '../services/gamificationService';
+import { createListingEmbedding, createQueryEmbedding, isSemanticSearchEnabled, rankBySemanticSimilarity } from '../services/semanticSearchService';
 
 const RENTAL_CONDITIONS = ['new', 'good', 'fair', 'worn'] as const;
 type RentalCondition = typeof RENTAL_CONDITIONS[number];
@@ -74,6 +75,15 @@ export const createRental = async (req: AuthenticatedRequest, res: Response, nex
       availabilityCalendar: []
     });
 
+    if (isSemanticSearchEnabled()) {
+      try {
+        newRental.searchEmbedding = await createListingEmbedding(newRental);
+        await newRental.save();
+      } catch (embeddingError) {
+        console.error('Could not embed new rental for semantic search:', embeddingError);
+      }
+    }
+
     res.status(201).json(newRental);
 
     // Gamification
@@ -91,7 +101,8 @@ export const getRentals = async (req: AuthenticatedRequest, res: Response, next:
     const { search, category, status, minPrice, maxPrice } = req.query;
     const query: any = {};
 
-    if (search) {
+    const semanticSearch = typeof search === 'string' && search.trim().length > 0 && isSemanticSearchEnabled();
+    if (search && !semanticSearch) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
@@ -115,11 +126,29 @@ export const getRentals = async (req: AuthenticatedRequest, res: Response, next:
       if (maxPrice) query.pricePerDay.$lte = Number(maxPrice);
     }
 
-    const rentals = await Rental.find(query)
+    const rentalsQuery = Rental.find(query)
       .populate('ownerId', 'name email college ratingAvg')
       .sort({ createdAt: -1 });
+    if (semanticSearch) rentalsQuery.select('+searchEmbedding');
+    const rentals = await rentalsQuery;
 
-    res.status(200).json(rentals);
+    if (!semanticSearch) return res.status(200).json(rentals);
+
+    try {
+      const rankedRentals = rankBySemanticSimilarity(rentals, await createQueryEmbedding(search as string));
+      return res.status(200).json(rankedRentals.map((rental: any) => {
+        const result = rental.toObject();
+        delete result.searchEmbedding;
+        return result;
+      }));
+    } catch (embeddingError) {
+      console.error('Semantic rental search failed; returning newest listings:', embeddingError);
+      return res.status(200).json(rentals.map((rental: any) => {
+        const result = rental.toObject();
+        delete result.searchEmbedding;
+        return result;
+      }));
+    }
   } catch (error) {
     next(error);
   }
@@ -171,6 +200,14 @@ export const updateRental = async (req: AuthenticatedRequest, res: Response, nex
     }
     if (availabilityNotes !== undefined) {
       rental.availabilityNotes = typeof availabilityNotes === 'string' ? availabilityNotes.trim() : rental.availabilityNotes;
+    }
+
+    if (isSemanticSearchEnabled()) {
+      try {
+        rental.searchEmbedding = await createListingEmbedding(rental);
+      } catch (embeddingError) {
+        console.error('Could not refresh rental semantic embedding:', embeddingError);
+      }
     }
 
     await rental.save();

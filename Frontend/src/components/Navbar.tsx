@@ -75,18 +75,18 @@ export const Navbar: React.FC = () => {
   if (!user) return null;
 
   return (
-    <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+    <nav className="sticky top-0 z-50 border-b border-white/[0.08] bg-black/75 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
+            <Link to="/" className="text-[15px] font-semibold tracking-[-0.03em] text-white">
               Campus Gigs & Rentals
             </Link>
-            <div className="hidden md:ml-8 md:flex space-x-6">
+            <div className="hidden md:ml-10 md:flex items-center gap-6">
               <Link
                 to="/"
                 className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                  location.pathname === '/' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-slate-300 hover:text-white'
+                  location.pathname === '/' ? 'text-white' : 'text-[#8E8E93] hover:text-white'
                 }`}
               >
                 Browse
@@ -94,7 +94,7 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/chat"
                 className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                  location.pathname === '/chat' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-slate-300 hover:text-white'
+                  location.pathname === '/chat' ? 'text-white' : 'text-[#8E8E93] hover:text-white'
                 }`}
               >
                 Chat
@@ -102,7 +102,7 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/profile"
                 className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                  location.pathname === '/profile' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-slate-300 hover:text-white'
+                  location.pathname === '/profile' ? 'text-white' : 'text-[#8E8E93] hover:text-white'
                 }`}
               >
                 My Portal
@@ -110,10 +110,10 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/leaderboard"
                 className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                  location.pathname === '/leaderboard' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-slate-300 hover:text-white'
+                  location.pathname === '/leaderboard' ? 'text-white' : 'text-[#8E8E93] hover:text-white'
                 }`}
               >
-                <Trophy className={`w-4 h-4 mr-1 ${location.pathname === '/leaderboard' ? 'text-yellow-400' : 'text-slate-400'}`} />
+                <Trophy className={`w-4 h-4 mr-1 ${location.pathname === '/leaderboard' ? 'text-white' : 'text-[#8E8E93]'}`} />
                 Leaderboard
               </Link>
               {user.role === 'admin' && (
@@ -135,11 +135,11 @@ export const Navbar: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition relative"
+                className="relative rounded-full p-2 text-[#8E8E93] transition hover:bg-white/[0.08] hover:text-white"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-900" />
+                  <span className="absolute right-1.5 top-1.5 block h-2 w-2 rounded-full bg-[#0A84FF] ring-2 ring-black" />
                 )}
               </button>
 
@@ -195,20 +195,20 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Profile Avatar */}
-            <div className="flex items-center space-x-3 border-l border-slate-800 pl-4">
+            <div className="flex items-center space-x-2 border-l border-white/[0.08] pl-4">
               <div className="hidden lg:block text-right">
-                <p className="text-xs font-medium text-slate-200">{user.name}</p>
-                <p className="text-[10px] text-slate-400">{user.college}</p>
+                <p className="text-xs font-medium text-zinc-200">{user.name}</p>
+                <p className="text-[10px] text-[#8E8E93]">{user.college || 'VIT'}</p>
               </div>
               <button
                 onClick={() => navigate('/profile')}
-                className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="rounded-full border border-white/[0.08] bg-white/[0.05] p-2 text-zinc-300 transition hover:bg-white/[0.1] hover:text-white"
               >
                 <UserIcon className="w-5 h-5" />
               </button>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-full text-slate-400 hover:text-red-400 hover:bg-slate-800 transition"
+                className="rounded-full p-2 text-[#8E8E93] transition hover:bg-white/[0.08] hover:text-white"
                 title="Log out"
               >
                 <LogOut className="w-5 h-5" />

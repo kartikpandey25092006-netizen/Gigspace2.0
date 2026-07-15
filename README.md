@@ -92,12 +92,23 @@ PORT=5000
 MONGODB_URI=mongodb://localhost:27017/campus_gigs_rentals
 JWT_SECRET=development_secret_key_123
 REFRESH_SECRET=development_refresh_key_456
+HF_TOKEN=hf_your_hugging_face_token
+# Optional; defaults to thenlper/gte-large
+HF_EMBEDDING_MODEL=thenlper/gte-large
 ```
 Start the development server:
 ```bash
 npm run dev
 ```
 The server will run on `http://localhost:5000` with hot reloading.
+
+### Semantic Search
+
+With `HF_TOKEN` configured, listing titles, descriptions, and relevant details are embedded when a gig or rental is created or edited. Search queries are ranked by semantic similarity, so a query such as "need help shifting stuff" can match a listing for moving assistance. Embed existing listings once after enabling the feature:
+```bash
+cd Backend
+npm run semantic:backfill
+```
 
 ### 3. Start the Frontend Dev Server
 Start the Vite developer environment:

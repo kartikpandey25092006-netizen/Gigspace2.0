@@ -6,6 +6,7 @@ import { ApiError } from '../middlewares/errorMiddleware';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 import { createNotification } from '../services/notificationService';
 import { awardXP, XP_REWARDS, checkAndAwardBadges } from '../services/gamificationService';
+import { createListingEmbedding, createQueryEmbedding, isSemanticSearchEnabled, rankBySemanticSimilarity } from '../services/semanticSearchService';
 
 export const createGig = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
@@ -27,6 +28,15 @@ export const createGig = async (req: AuthenticatedRequest, res: Response, next: 
       status: 'open'
     });
 
+    if (isSemanticSearchEnabled()) {
+      try {
+        newGig.searchEmbedding = await createListingEmbedding(newGig);
+        await newGig.save();
+      } catch (embeddingError) {
+        console.error('Could not embed new gig for semantic search:', embeddingError);
+      }
+    }
+
     res.status(201).json(newGig);
 
     // Gamification
@@ -44,7 +54,8 @@ export const getGigs = async (req: AuthenticatedRequest, res: Response, next: Ne
     const { search, category, status, minPrice, maxPrice } = req.query;
     const query: any = {};
 
-    if (search) {
+    const semanticSearch = typeof search === 'string' && search.trim().length > 0 && isSemanticSearchEnabled();
+    if (search && !semanticSearch) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
@@ -67,12 +78,30 @@ export const getGigs = async (req: AuthenticatedRequest, res: Response, next: Ne
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    const gigs = await Gig.find(query)
+    const gigsQuery = Gig.find(query)
       .populate('posterId', 'name email college ratingAvg')
       .populate('acceptedById', 'name email college ratingAvg')
       .sort({ createdAt: -1 });
+    if (semanticSearch) gigsQuery.select('+searchEmbedding');
+    const gigs = await gigsQuery;
 
-    res.status(200).json(gigs);
+    if (!semanticSearch) return res.status(200).json(gigs);
+
+    try {
+      const rankedGigs = rankBySemanticSimilarity(gigs, await createQueryEmbedding(search as string));
+      return res.status(200).json(rankedGigs.map((gig: any) => {
+        const result = gig.toObject();
+        delete result.searchEmbedding;
+        return result;
+      }));
+    } catch (embeddingError) {
+      console.error('Semantic gig search failed; returning newest listings:', embeddingError);
+      return res.status(200).json(gigs.map((gig: any) => {
+        const result = gig.toObject();
+        delete result.searchEmbedding;
+        return result;
+      }));
+    }
   } catch (error) {
     next(error);
   }
@@ -122,6 +151,14 @@ export const updateGig = async (req: AuthenticatedRequest, res: Response, next: 
     }
     if (requirementNotes !== undefined) {
       gig.requirementNotes = typeof requirementNotes === 'string' ? requirementNotes.trim() : gig.requirementNotes;
+    }
+
+    if (isSemanticSearchEnabled()) {
+      try {
+        gig.searchEmbedding = await createListingEmbedding(gig);
+      } catch (embeddingError) {
+        console.error('Could not refresh gig semantic embedding:', embeddingError);
+      }
     }
 
     await gig.save();

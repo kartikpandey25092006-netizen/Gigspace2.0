@@ -3,6 +3,7 @@ import { IRental } from '../../../Shared/src/types';
 
 export interface IRentalDocument extends Omit<IRental, '_id' | 'createdAt' | 'updatedAt' | 'ownerId'>, Document {
   ownerId: mongoose.Types.ObjectId;
+  searchEmbedding?: number[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +22,7 @@ const RentalSchema = new Schema<IRentalDocument>({
   },
   pickupLocation: { type: String, trim: true, default: '' },
   availabilityNotes: { type: String, trim: true, default: '' },
+  searchEmbedding: { type: [Number], select: false, default: undefined },
   status: { type: String, enum: ['available', 'rented', 'maintenance'], default: 'available', index: true },
   availabilityCalendar: [{ type: String }] // Array of date strings in YYYY-MM-DD format representing booked/rented days
 }, {

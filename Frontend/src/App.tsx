@@ -88,13 +88,13 @@ const VerificationBanner: React.FC = () => {
 
   return (
     <>
-      <div className="border-b border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
+      <div className="border-b border-amber-400/15 bg-amber-400/[0.12] px-4 py-2.5 text-sm text-amber-200">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <span>Link your VIT email to start posting listings and using chat.</span>
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="px-3 py-1.5 rounded bg-yellow-400 text-slate-950 text-xs font-bold hover:bg-yellow-300 transition"
+            className="rounded-md bg-amber-200 px-3 py-1.5 text-xs font-semibold text-black transition hover:bg-amber-100"
           >
             Verify VIT Email
           </button>
@@ -183,7 +183,7 @@ const AppContent: React.FC = () => {
 
   return (
     <Router>
-      <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100">
+      <div className="flex min-h-screen flex-col bg-black text-zinc-100">
         <Navbar />
         <VerificationBanner />
         <main className="flex-1">
