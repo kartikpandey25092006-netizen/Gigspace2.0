@@ -331,6 +331,9 @@ export const cancelGig = async (req: AuthenticatedRequest, res: Response, next: 
       return next(new ApiError(403, 'Not authorized to cancel this gig'));
     }
 
+    // Preserve the accepter before clearing it so the other participant can be notified.
+    const acceptedById = gig.acceptedById?.toString();
+
     // Reset gig status back to open and remove accepter
     gig.status = 'open';
     gig.acceptedById = undefined;
@@ -344,7 +347,7 @@ export const cancelGig = async (req: AuthenticatedRequest, res: Response, next: 
     }
 
     // Notify the opposite user
-    const otherUser = gig.posterId.toString() === userId ? gig.acceptedById?.toString() : gig.posterId.toString();
+    const otherUser = gig.posterId.toString() === userId ? acceptedById : gig.posterId.toString();
     if (otherUser) {
       const actor = await User.findById(userId);
       await createNotification(

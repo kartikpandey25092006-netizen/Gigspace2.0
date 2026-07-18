@@ -1,14 +1,13 @@
-import mongoose from 'mongoose';
+import { supabase } from './supabase';
 
 export const connectDB = async (): Promise<void> => {
   try {
-    const connString = process.env.MONGODB_URI || 'mongodb://localhost:27017/campus_gigs_rentals';
-    mongoose.set('strictQuery', true);
-    
-    await mongoose.connect(connString);
-    console.log(`MongoDB Connected successfully to ${mongoose.connection.name}`);
+    const { error } = await supabase.from('categories').select('id').limit(1);
+    if (error) throw error;
+
+    console.log('Supabase connected successfully');
   } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
+    console.error('Error connecting to Supabase:', error);
     process.exit(1);
   }
 };

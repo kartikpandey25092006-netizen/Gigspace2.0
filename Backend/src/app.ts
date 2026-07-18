@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -37,14 +37,14 @@ app.get('/health', (req, res) => {
 });
 
 // Fetch Categories directly
-app.get('/api/v1/categories', (async (req, res, next) => {
+app.get('/api/v1/categories', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const categories = await Category.find({});
     res.status(200).json(categories);
   } catch (error) {
     next(error);
   }
-}) as any);
+});
 
 // Routes
 app.use('/api/v1/auth', authRoutes);

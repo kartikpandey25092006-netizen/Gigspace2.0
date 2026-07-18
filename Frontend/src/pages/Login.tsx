@@ -92,8 +92,8 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 glass-panel p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+    <div className="atelier-auth min-h-screen flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="atelier-auth-card max-w-md w-full space-y-8 p-8 rounded-[20px] relative overflow-hidden">
         {/* Decorative ambient gradient backdrop */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl" />
@@ -104,7 +104,7 @@ export const Login: React.FC = () => {
               <GraduationCap className="w-10 h-10" />
             </div>
           </div>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white">
+          <h2 className="mt-4 text-3xl tracking-tight">
             {isLogin ? 'Sign in to Campus Gigs' : 'Join the Marketplace'}
           </h2>
           <p className="mt-2 text-sm text-slate-400">
@@ -122,7 +122,7 @@ export const Login: React.FC = () => {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center px-4 py-3 border border-slate-700 text-sm font-semibold rounded-lg text-slate-100 bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            className="w-full flex items-center justify-center px-4 py-3 border border-[#c7c7c7] text-sm font-semibold rounded-lg text-[#050505] bg-white hover:bg-[#e4dfd9] transition"
           >
             Sign in with Google
           </button>
@@ -190,7 +190,7 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition disabled:opacity-50"
+              className="atelier-primary w-full flex items-center justify-center px-4 py-3 border border-transparent text-sm font-semibold transition disabled:opacity-50"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -213,7 +213,7 @@ export const Login: React.FC = () => {
               setIsLogin(!isLogin);
               setError(null);
             }}
-            className="text-xs text-blue-400 hover:text-blue-300 font-medium inline-flex items-center"
+            className="atelier-auth-link text-xs font-medium inline-flex items-center"
           >
             {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             <ArrowRight className="w-3.5 h-3.5 ml-1" />

@@ -2,10 +2,10 @@
   "name": "campus-gigs-rentals-backend",
   "version": "1.0.0",
   "description": "Backend services for Campus Gigs & Rentals",
-  "main": "dist/server.js",
+  "main": "dist/Backend/src/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/Backend/src/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "test": "jest --runInBand --detectOpenHandles --forceExit",
     "test:coverage": "jest --runInBand --detectOpenHandles --forceExit --coverage",
@@ -13,6 +13,7 @@
     "semantic:backfill": "ts-node src/scripts/backfillEmbeddings.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
     "@types/nodemailer": "^8.0.1",
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.17",

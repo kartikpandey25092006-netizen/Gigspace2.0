@@ -135,13 +135,13 @@ export const Browse: React.FC = () => {
   const activeCategories = categories.filter((c) => c.type === tab);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="atelier-page mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       {/* Welcome Header */}
       <div className="mb-10 flex flex-col items-start justify-between gap-5 md:flex-row md:items-end">
         <div>
-          <p className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#8E8E93]">Student-to-student exchange</p>
-          <h1 className="text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">Campus Marketplace</h1>
-          <p className="mt-3 max-w-xl text-[15px] leading-6 text-[#8E8E93]">Hire peers for student gigs or rent textbooks, calculators, and campus items.</p>
+          <p className="atelier-kicker mb-3 text-xs font-medium uppercase">Student-to-student exchange <span className="text-[#ff6a1f]">•</span> live on campus</p>
+          <h1 className="atelier-heading text-4xl sm:text-5xl">Campus Marketplace<span className="text-[#ff6a1f]">.</span></h1>
+          <p className="atelier-copy mt-3 max-w-xl text-[15px] leading-6">Hire peers for student gigs or rent textbooks, calculators, and campus essentials.</p>
         </div>
         <button
           onClick={() => {
@@ -150,7 +150,7 @@ export const Browse: React.FC = () => {
             }
             setShowModal(true);
           }}
-          className="flex items-center rounded-lg bg-[#0A84FF] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(10,132,255,0.28)] transition hover:bg-[#2594ff]"
+          className="atelier-primary flex items-center px-4 py-2.5 text-sm font-semibold transition"
         >
           <PlusCircle className="w-5 h-5 mr-2" />
           {tab === 'gig' ? 'Post a Gig' : 'List a Rental'}
@@ -158,14 +158,14 @@ export const Browse: React.FC = () => {
       </div>
 
       {/* Tabs Switcher */}
-      <div className="mb-7 flex gap-7 border-b border-white/[0.08]">
+      <div className="atelier-tabs mb-7 flex">
         <button
           onClick={() => {
             setTab('gig');
             setSelectedCategory('');
           }}
-          className={`-mb-px border-b-2 py-3.5 text-sm font-medium transition ${
-            tab === 'gig' ? 'border-white text-white' : 'border-transparent text-[#8E8E93] hover:text-white'
+          className={`atelier-tab py-3 px-4 text-sm font-medium transition ${
+            tab === 'gig' ? 'atelier-tab-active' : ''
           }`}
         >
           <div className="flex items-center">
@@ -178,8 +178,8 @@ export const Browse: React.FC = () => {
             setTab('rental');
             setSelectedCategory('');
           }}
-          className={`-mb-px border-b-2 py-3.5 text-sm font-medium transition ${
-            tab === 'rental' ? 'border-white text-white' : 'border-transparent text-[#8E8E93] hover:text-white'
+          className={`atelier-tab py-3 px-4 text-sm font-medium transition ${
+            tab === 'rental' ? 'atelier-tab-active' : ''
           }`}
         >
           <div className="flex items-center">
@@ -192,19 +192,19 @@ export const Browse: React.FC = () => {
       {/* Filter Toolbar */}
       <div className="mb-9">
         <form onSubmit={handleSearchSubmit} className="flex flex-col items-stretch gap-3 lg:flex-row lg:items-center">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-3.5 h-4 w-4 text-[#8E8E93]" />
+          <div className="atelier-search flex-1 relative">
+            <Search className="absolute left-4 top-3.5 h-4 w-4" />
             <input
               type="text"
               placeholder={`Search ${tab === 'gig' ? 'gigs' : 'rentals'} by intent (e.g. need help shifting stuff)...`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.06] py-3 pl-11 pr-4 text-sm text-zinc-100 placeholder:text-[#8E8E93] backdrop-blur-xl transition hover:border-white/[0.14]"
+              className="w-full border py-3 pl-11 pr-4 text-sm transition"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-[#8E8E93]" />
+            <DollarSign className="atelier-filter-icon h-4 w-4" />
             <input
               type="number"
               placeholder="Min Price"
@@ -224,7 +224,7 @@ export const Browse: React.FC = () => {
 
           <button
             type="submit"
-            className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200"
+            className="atelier-primary px-4 py-2.5 text-sm font-medium transition"
           >
             Apply Filters
           </button>
@@ -234,8 +234,8 @@ export const Browse: React.FC = () => {
         <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
           <button
             onClick={() => setSelectedCategory('')}
-            className={`flex shrink-0 items-center rounded-full px-3.5 py-2 text-xs font-medium transition ${
-              selectedCategory === '' ? 'bg-white text-black' : 'bg-[#1A1A1C] text-[#8E8E93] hover:bg-zinc-800 hover:text-white'
+            className={`atelier-chip flex shrink-0 items-center rounded-full px-3.5 py-2 text-xs font-medium transition ${
+              selectedCategory === '' ? 'atelier-chip-active' : ''
             }`}
           >
             <Layers className="w-3.5 h-3.5 mr-1" />
@@ -245,8 +245,8 @@ export const Browse: React.FC = () => {
             <button
               key={cat._id}
               onClick={() => setSelectedCategory(cat.name)}
-              className={`flex shrink-0 items-center rounded-full px-3.5 py-2 text-xs font-medium transition ${
-                selectedCategory === cat.name ? 'bg-white text-black' : 'bg-[#1A1A1C] text-[#8E8E93] hover:bg-zinc-800 hover:text-white'
+              className={`atelier-chip flex shrink-0 items-center rounded-full px-3.5 py-2 text-xs font-medium transition ${
+                selectedCategory === cat.name ? 'atelier-chip-active' : ''
               }`}
             >
               <Tag className="w-3.5 h-3.5 mr-1" />
@@ -258,9 +258,9 @@ export const Browse: React.FC = () => {
 
       {/* Feed Listings */}
       {loading ? (
-        <div className="text-center py-16 text-slate-500 font-medium">Loading listings...</div>
+        <div className="text-center py-16 text-[#737373] font-medium">Loading listings...</div>
       ) : listings.length === 0 ? (
-        <div className="text-center py-16 text-slate-500 glass-panel rounded-xl">
+        <div className="atelier-empty text-center py-16">
           <p className="text-lg">No active {tab}s found matching filters.</p>
           <p className="text-sm text-slate-600 mt-2">Try posting a new one or adjusting search keywords.</p>
         </div>
@@ -274,23 +274,23 @@ export const Browse: React.FC = () => {
               <div
                 key={item._id}
                 onClick={() => navigate(tab === 'gig' ? `/gig/${item._id}` : `/rental/${item._id}`)}
-                className="group flex min-h-[238px] cursor-pointer flex-col justify-between rounded-xl border border-white/[0.08] bg-[#141416] p-5 transition duration-200 hover:-translate-y-1 hover:border-white/[0.18] hover:bg-[#18181a]"
+                className="atelier-card group flex min-h-[238px] cursor-pointer flex-col justify-between p-5 transition duration-200 hover:-translate-y-1"
               >
                 <div>
                   <div className="flex justify-between items-start gap-4">
-                    <span className="rounded-full bg-white/[0.07] px-2.5 py-1 text-[10px] font-medium tracking-wide text-zinc-300">
+                    <span className="atelier-category rounded-full px-2.5 py-1 text-[10px] font-medium tracking-wide">
                       {item.category}
                     </span>
-                    <span className="text-base font-semibold tracking-[-0.02em] text-white">{priceLabel}</span>
+                    <span className="atelier-price text-base font-semibold tracking-[-0.02em]">{priceLabel}</span>
                   </div>
-                  <h3 className="mt-4 truncate text-[17px] font-semibold tracking-[-0.025em] text-white">{item.title}</h3>
-                  <p className="mt-2 line-clamp-2 text-sm leading-5 text-[#8E8E93]">{item.description}</p>
+                  <h3 className="atelier-display mt-4 truncate text-[20px]">{item.title}</h3>
+                  <p className="atelier-muted mt-2 line-clamp-2 text-sm leading-5">{item.description}</p>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between border-t border-white/[0.08] pt-4">
+                <div className="atelier-divider mt-6 flex items-center justify-between border-t pt-4">
                   <div className="flex flex-col">
-                    <span className="text-xs text-[#8E8E93]">{owner?.isVerified ? '✓ Verified university student' : owner?.name || 'Campus student'}</span>
-                    <span className="mt-0.5 text-[11px] text-zinc-600">Recently posted</span>
+                    <span className="atelier-muted text-xs">{owner?.isVerified ? '✓ Verified university student' : owner?.name || 'Campus student'}</span>
+                    <span className="atelier-muted mt-0.5 text-[11px]">Recently posted</span>
                     {owner?.ratingAvg > 0 && (
                       <span className="text-[10px] text-yellow-500 flex items-center mt-0.5">
                         <Star className="w-3 h-3 fill-yellow-500 stroke-yellow-500 mr-1" />
@@ -298,7 +298,7 @@ export const Browse: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <button className="flex items-center text-xs font-medium text-zinc-300 transition group-hover:text-white">
+                  <button className="flex items-center text-xs font-medium text-[#050505] transition">
                     View Details <ArrowRight className="w-3.5 h-3.5 ml-1" />
                   </button>
                 </div>
@@ -311,7 +311,7 @@ export const Browse: React.FC = () => {
       {/* Creation Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
+          <div className="atelier-modal max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
             <h2 className="text-xl font-bold text-white mb-4">
               {tab === 'gig' ? 'Post a New Campus Gig' : 'List a Rental Item'}
             </h2>

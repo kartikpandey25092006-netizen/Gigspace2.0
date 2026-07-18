@@ -183,7 +183,7 @@ const AppContent: React.FC = () => {
 
   return (
     <Router>
-      <div className="flex min-h-screen flex-col bg-black text-zinc-100">
+      <div className="atelier-shell flex min-h-screen flex-col">
         <Navbar />
         <VerificationBanner />
         <main className="flex-1">
